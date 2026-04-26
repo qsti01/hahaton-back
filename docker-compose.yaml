@@ -1,0 +1,32 @@
+services:
+# Change "/var/lib/postgresql" to "/var/lib/postgresql/data" in "PGDATA" and "postgres_data" if using an older version of pgsql and experience volume errors
+  t2db:
+    image: postgres:18
+    container_name: t2db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12341231212
+      POSTGRES_DB: t2db
+      PGDATA: /var/lib/postgresql
+    ports:
+      - "5434:5432" 
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d t2db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  t2backend:
+    image: t2-schedule-api
+    container_name: t2backend
+    ports:
+      - "8000:8000" 
+    depends_on:
+      t2db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
